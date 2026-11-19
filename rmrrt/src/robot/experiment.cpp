@@ -12,6 +12,7 @@
 #include <ros/master.h>
 #include <ros/package.h>
 #include <ros/param.h>
+#include <yaml-cpp/yaml.h>
 
 namespace rmrrt {
 namespace robot {
@@ -44,6 +45,11 @@ Experiment::Experiment(const std::string& scenario)
 std::string Experiment::sceneFile(int scene) const
 {
   return sceneDir(scene) + "/scene.yaml";
+}
+
+unsigned Experiment::seed(int scene) const
+{
+  return YAML::LoadFile(sceneFile(scene))["seed"].as<unsigned>();
 }
 
 Vector Experiment::start(int scene) const

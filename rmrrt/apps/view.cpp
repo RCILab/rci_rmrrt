@@ -45,7 +45,7 @@ int run(int argc, char** argv)
   config.apply(metric);
   RRTConnect planner(problem, metric);
   config.apply(planner, method);
-  planner.setSeed(Experiment::seed(config.seed, scene));
+  planner.setSeed(experiment.seed(scene));
   planner.setRecording(true);
   const bool solved = planner.solve(start, goal, config.timeout);
   const PlannerStatistics& stats = planner.statistics();

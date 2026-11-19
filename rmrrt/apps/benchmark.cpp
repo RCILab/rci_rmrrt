@@ -26,8 +26,9 @@ struct Summary
   double seconds{0.0}, checks{0.0}, path_length{0.0};
 };
 
+// seed 0: the seed of each query.
 Summary runMethod(const Experiment& experiment, const moveit::core::RobotModelConstPtr& model, const PlannerConfig& config,
-                  const Method& method, const std::vector<int>& scenes)
+                  const Method& method, const std::vector<int>& scenes, unsigned seed)
 {
   RiemannianMetric metric;
   config.apply(metric);
@@ -40,7 +41,7 @@ Summary runMethod(const Experiment& experiment, const moveit::core::RobotModelCo
     const RobotProblem problem(model, experiment.spec(), experiment.sceneFile(scene), start, goal);
     RRTConnect planner(problem, metric);
     config.apply(planner, method);
-    planner.setSeed(Experiment::seed(config.seed, scene));
+    planner.setSeed(seed ? seed : experiment.seed(scene));
     const bool solved = planner.solve(start, goal, config.timeout);
     const PlannerStatistics& stats = planner.statistics();
     std::printf("  scene_%04d  %-9s  %-6s  %7.3f s  checks %7zu  path %6.2f\n", scene, method.name.c_str(), solved ? "solved" : "failed",
@@ -76,15 +77,13 @@ int run(int argc, char** argv)
     ("method,M", po::value<std::string>()->default_value("rmrrt"), "rmrrt | steer | select | no_metric | all")
     ("scene", po::value<int>(), "only this query (default: every query of the scenario)")
     ("timeout", po::value<double>(), "seconds per query (default: config/planner.yaml)")
-    ("seed", po::value<unsigned>(), "random seed (default: config/planner.yaml)");
+    ("seed", po::value<unsigned>()->default_value(0), "one random seed for every query (default 0: the seed of each query)");
   const po::variables_map args = parseCommandLine(argc, argv, options);
 
   const Experiment experiment(args["scenario"].as<std::string>());
   PlannerConfig config = PlannerConfig::load(Experiment::packagePath("config/planner.yaml"));
   if (args.count("timeout"))
     config.timeout = args["timeout"].as<double>();
-  if (args.count("seed"))
-    config.seed = args["seed"].as<unsigned>();
   const std::vector<int> scenes = args.count("scene") ? std::vector<int>{args["scene"].as<int>()} : experiment.scenes();
   const std::string name = args["method"].as<std::string>();
   const std::vector<Method> chosen = name == "all" ? methods() : std::vector<Method>{findMethod(name)};
@@ -94,7 +93,7 @@ int run(int argc, char** argv)
   for (const Method& method : chosen)
   {
     std::printf("%s, %s: %zu queries\n", experiment.spec().name.c_str(), method.name.c_str(), scenes.size());
-    summaries.push_back(runMethod(experiment, model, config, method, scenes));
+    summaries.push_back(runMethod(experiment, model, config, method, scenes, args["seed"].as<unsigned>()));
   }
   printSummaries(experiment.spec().name, summaries);
   std::printf("\nresults: %s\n", experiment.resultPath("").c_str());

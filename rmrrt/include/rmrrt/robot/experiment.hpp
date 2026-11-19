@@ -11,7 +11,7 @@ namespace rmrrt {
 namespace robot {
 
 // A scenario of config/scenarios.yaml and its queries, scenes/<scenario>/scene_NNNN/ with scene.yaml (the
-// boxes), start_q.txt and goal_q.txt. Paths are relative to the rmrrt package.
+// random seed and the boxes of the query), start_q.txt and goal_q.txt. Paths are relative to the rmrrt package.
 class Experiment
 {
 public:
@@ -23,8 +23,8 @@ public:
   std::string sceneFile(int scene) const;
   Vector start(int scene) const;
   Vector goal(int scene) const;
-  // The random seed of a query: the same for every method.
-  static unsigned seed(unsigned base, int scene) { return base * 100000u + static_cast<unsigned>(scene); }
+  // The random seed of a query, the same for every method.
+  unsigned seed(int scene) const;
 
   // The robot on the ROS parameter server; says which launch file loads it when it is missing.
   moveit::core::RobotModelConstPtr loadRobot() const;

@@ -6,7 +6,6 @@ planner:
   projection_tolerance: 0.002  # tau: a configuration is on the manifold when ||g(q)|| < tau
   edge_resolution: 0.01        # spacing of the validity checks along an edge [rad]
   timeout: 30.0                # seconds per query
-  seed: 1                      # query k uses seed * 100000 + k
 
 metric:
   lambda: 1.0                  # G = lambda I + sum_i w(h_i) grad h_i grad h_i^T

@@ -29,7 +29,7 @@ collision check still decides what is valid.
 - [Quick Start (Docker)](#quick-start-docker)
 - [Installation](#installation)
 - [Examples](#examples)
-- [Methods and parameters](#methods-and-parameters)
+- [Options and parameters](#options-and-parameters)
 - [Code structure](#code-structure)
 - [Using RMRRT on your own problem](#using-rmrrt-on-your-own-problem)
 - [Citation](#citation)
@@ -103,37 +103,24 @@ roslaunch rmrrt sphere_demo.launch layout:=clutter instance:=3  # layout: open |
 
 ### Robot scenarios
 
-Each scenario takes two terminals: the first loads the robot, the second plans. `-M all` runs the four
-methods; the default is `rmrrt`. Every scenario has ten queries in `rmrrt/scenes/<scenario>`.
+| | `-E` | Robot and task |
+| --- | --- | --- |
+| S1 | `panda_orientation` | a Panda keeps a cup upright |
+| S2 | `panda_dual` | two Pandas carry a tray |
+| S3 | `panda_dual_orientation` | two Pandas carry a tray kept level |
+| S4 | `panda_triple` | three Pandas carry a chair |
+| S5 | `h1_2_dual` | a Unitree H1-2 carries a box with both hands |
 
-| | Scenario `-E` | Robot | Constraint | n | m |
-| --- | --- | --- | --- | :---: | :---: |
-| S1 | `panda_orientation` | Panda | cup kept upright | 7 | 2 |
-| S2 | `panda_dual` | two Pandas | closed chain through a tray | 14 | 6 |
-| S3 | `panda_dual_orientation` | two Pandas | closed chain, tray kept level | 14 | 8 |
-| S4 | `panda_triple` | three Pandas | closed chain through a chair | 21 | 12 |
-| S5 | `h1_2_dual` | Unitree H1-2 | closed chain through a box | 14 | 6 |
+Each scenario takes two terminals: the first loads the robot, the second plans.
 
 ```bash
 # terminal 1
 roslaunch rmrrt robot.launch scenario:=panda_dual
 # terminal 2
-rosrun rmrrt benchmark -E panda_dual -M all
+rosrun rmrrt benchmark -E panda_dual               # RMRRT on the ten queries
+rosrun rmrrt benchmark -E panda_dual -M all        # rmrrt, steer, select and no_metric
+rosrun rmrrt benchmark -E panda_dual --scene 2     # one query
 ```
-
-`benchmark -M all` ends with the means over the queries. On our machine (all queries solved; planning
-time · collision checks):
-
-| | `no_metric` | `steer` | `select` | `rmrrt` |
-| --- | :---: | :---: | :---: | :---: |
-| S1 | 0.34 s · 3,958 | 0.10 s · 928 | 0.29 s · 3,300 | **0.09 s · 827** |
-| S2 | 0.60 s · 4,199 | 0.13 s · 824 | 0.55 s · 3,790 | **0.12 s · 794** |
-| S3 | 0.43 s · 3,246 | 0.11 s · 715 | 0.44 s · 3,185 | **0.11 s · 711** |
-| S4 | 3.69 s · 33,669 | 1.11 s · 3,219 | 2.61 s · 24,935 | **0.87 s · 2,503** |
-| S5 | 12.78 s · 4,786 | 3.02 s · 1,073 | 9.85 s · 3,893 | **2.93 s · 1,069** |
-
-The ten queries of each scenario were chosen to show what the metric does; they are examples, not a
-benchmark. The collision checks and paths do not depend on the machine: the seed of each query is fixed.
 
 One query in RViz, the search replayed where the carried object is and the path animated:
 
@@ -141,8 +128,8 @@ One query in RViz, the search replayed where the carried object is and the path 
 # terminal 1
 roslaunch rmrrt view.launch scenario:=panda_dual
 # terminal 2
-rosrun rmrrt view -E panda_dual --scene 526                 # RMRRT
-rosrun rmrrt view -E panda_dual --scene 526 -M no_metric    # the same query without the metric
+rosrun rmrrt view -E panda_dual --scene 2
+rosrun rmrrt view -E panda_dual --scene 2 -M no_metric
 ```
 
 <details>
@@ -166,36 +153,33 @@ rosrun rmrrt benchmark -E h1_2_dual -M all
 ```
 
 The viewer takes the same scenarios: `roslaunch rmrrt view.launch scenario:=<scenario>` and
-`rosrun rmrrt view -E <scenario> --scene <number> [-M <method>]`.
+`rosrun rmrrt view -E <scenario> --scene <1-10> [-M <method>]`.
 
 </details>
 
-Options of `benchmark`: `--scene <number>` (one query), `--timeout <seconds>`, `--seed <seed>`. Each run
-writes `rmrrt/results/<scenario>/<method>.csv` with one row per query: `solved`, `seconds`, `checks`
-(calls of the collision check), `path_length` (joint space, rad), `iterations`, `nodes`, `rejected` (steps
-the collision check rejected) and `declined` (extensions the node selection skipped).
+## Options and parameters
 
-## Methods and parameters
-
-The four methods differ only in how a step is steered and which node is extended:
-
-| `-M` | Steering | Node selection |
+| Option | `benchmark` | `view` |
 | --- | --- | --- |
-| `no_metric` | Euclidean: the step toward the target projected on the tangent space | the nearest node |
-| `steer` | centered: the metric step toward the target, pushed away from the nearby bounds | the nearest node |
-| `select` | Euclidean | Riemannian: the nearest node, extended only if the predicted metric step gets closer to the target |
-| `rmrrt` | centered | Riemannian |
+| `-E <scenario>` | the scenario (required) | the scenario (required) |
+| `-M <method>` | `rmrrt` (default), `steer`, `select`, `no_metric` or `all` | `rmrrt` (default), `steer`, `select`, `no_metric` |
+| `--scene <1-10>` | one query (default: all ten) | the query (default: 1) |
+| `--timeout <s>` | seconds per query (default: 30) | |
+| `--seed <n>` | one random seed for every query (default: the seed of each query) | |
+| `--duration <s>` | | seconds of one pass of the path animation (default: 10) |
 
-The metric at a configuration q, with the active inequalities h_i(q) > 0 and the equality Jacobian J:
+`steer` uses only the metric steering of RMRRT, `select` only its node selection, `no_metric` neither.
 
-```
-G = λI + Σ_i w(h_i) ∇h_i ∇h_iᵀ,   w(h) = δ² min(1/(h² + ε²), ψ_max)  for h < δ
-P = I − G⁻¹Jᵀ(JG⁻¹Jᵀ)⁻¹J            (G-orthogonal projector onto the tangent space)
-M = PᵀGP                            (the metric on the tangent space)
-```
+**Queries.** `rmrrt/scenes/<scenario>/scene_0001` to `scene_0010`: `scene.yaml` (the random seed and the
+boxes of the query), `start_q.txt` and `goal_q.txt` (joint values, in the order of the scenario's groups in
+[`rmrrt/config/scenarios.yaml`](rmrrt/config/scenarios.yaml)).
 
-Every parameter is in [`rmrrt/config/planner.yaml`](rmrrt/config/planner.yaml) and is the same for every
-scenario:
+**Results.** `benchmark` prints each query and the means over the queries, and writes
+`rmrrt/results/<scenario>/<method>.csv` with one row per query: `solved`, `seconds`, `checks` (calls of the
+collision check), `path_length` (joint space, rad), `iterations`, `nodes`, `rejected` (steps the collision
+check rejected) and `declined` (extensions the node selection skipped).
+
+**Parameters.** [`rmrrt/config/planner.yaml`](rmrrt/config/planner.yaml), the same for every scenario:
 
 | Parameter | Value | Meaning |
 | --- | --- | --- |
@@ -203,9 +187,9 @@ scenario:
 | `connection_tolerance` | 0.2 rad | the trees connect within this distance |
 | `projection_tolerance` | 0.002 | a configuration is on the manifold when ‖g(q)‖ is below it |
 | `edge_resolution` | 0.01 rad | spacing of the collision checks along an edge |
-| `beta` | 0.5 | weight of the barrier push in the centered steering |
-| `barrier_width` | 0.15 m, 0.05 m, 0.2 rad | δ of obstacles, self-collision and joint limits |
 | `timeout` | 30 s | per query |
+| `beta` | 0.5 | weight of the barrier push in the steering |
+| `barrier_width` | 0.15 m, 0.05 m, 0.2 rad | obstacles, self-collision and joint limits closer than this enter the metric |
 
 ## Code structure
 
@@ -229,7 +213,7 @@ rci_rmrrt/
     ├── config/          planner.yaml, scenarios.yaml
     ├── launch/          robot.launch, view.launch, sphere_demo.launch
     ├── robots/          Unitree H1-2 (S5) and the chair mesh (S4)
-    └── scenes/          ten queries per scenario: scene.yaml (boxes), start_q.txt, goal_q.txt
+    └── scenes/          ten queries per scenario: scene.yaml (seed, boxes), start_q.txt, goal_q.txt
 ```
 
 The planner core (`rmrrt` library) depends on Eigen only; the MoveIt layer (`rmrrt_robot`) builds a

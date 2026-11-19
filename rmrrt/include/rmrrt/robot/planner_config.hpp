@@ -15,7 +15,6 @@ struct PlannerConfig
   double projection_tolerance{0.0};
   double edge_resolution{0.0};
   double timeout{0.0};
-  unsigned seed{0};
   double lambda{0.0};
   double beta{0.0};
   double obstacle_width{0.0};

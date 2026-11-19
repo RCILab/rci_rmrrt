@@ -173,18 +173,15 @@ void RobotScene::addBox(const std::string& id, const Box& box)
   obstacles_.push_back(box);
 }
 
-// {name: {dim: [x, y, z], pos: [x, y, z]}, ...}: axis-aligned boxes of this query.
+// boxes: {name: {size: [x, y, z], center: [x, y, z]}, ...}: the axis-aligned boxes of this query.
 void RobotScene::addSceneFile(const std::string& file)
 {
   if (file.empty())
     return;
-  const YAML::Node boxes = YAML::LoadFile(file);
+  const YAML::Node boxes = YAML::LoadFile(file)["boxes"];
   for (auto it = boxes.begin(); it != boxes.end(); ++it)
   {
-    const YAML::Node item = it->second;
-    if (!item.IsMap() || !item["dim"] || !item["pos"] || item["dim"].size() != 3)
-      continue;
-    const auto size = item["dim"].as<std::vector<double>>(), center = item["pos"].as<std::vector<double>>();
+    const auto size = it->second["size"].as<std::vector<double>>(), center = it->second["center"].as<std::vector<double>>();
     addBox(it->first.as<std::string>(), axisAlignedBox(Eigen::Vector3d(center[0], center[1], center[2]), Eigen::Vector3d(size[0], size[1], size[2])));
   }
 }

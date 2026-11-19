@@ -15,7 +15,6 @@ PlannerConfig PlannerConfig::load(const std::string& file)
   config.projection_tolerance = planner["projection_tolerance"].as<double>();
   config.edge_resolution = planner["edge_resolution"].as<double>();
   config.timeout = planner["timeout"].as<double>();
-  config.seed = planner["seed"].as<unsigned>();
   config.lambda = metric["lambda"].as<double>();
   config.beta = metric["beta"].as<double>();
   config.obstacle_width = width["obstacle"].as<double>();
