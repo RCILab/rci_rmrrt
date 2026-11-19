@@ -1,0 +1,13 @@
+<launch>
+  <!-- The robot of a scenario and RViz for `rosrun rmrrt view`.
+         roslaunch rmrrt view.launch scenario:=panda_dual -->
+  <arg name="scenario" default="panda_orientation"/>
+
+  <include file="$(find rmrrt)/launch/robot.launch">
+    <arg name="scenario" value="$(arg scenario)"/>
+  </include>
+
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find rmrrt)/launch/rviz/view.rviz">
+    <env name="DISABLE_ROS1_EOL_WARNINGS" value="1"/>
+  </node>
+</launch>

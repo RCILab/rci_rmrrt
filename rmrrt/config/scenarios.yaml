@@ -1,0 +1,226 @@
+# The scenarios. Each defines the robot groups (the order of the joints in q), the tool frames held
+# together by the carried object, the obstacles shared by all of its queries and the carried object.
+# The obstacles of each query are in scenes/<scenario>/scene_NNNN/scene.yaml. The planner and metric
+# parameters are the same for every scenario: config/planner.yaml.
+scenarios:
+  # S1: one arm holds a cup upright (n = 7, m = 2).
+  panda_orientation:
+    groups: [panda_arm]
+    tips: [panda_hand_tcp]
+    keep_direction: {link: panda_hand_tcp, local: [1, 0, 0], world: [0, 0, 1]}
+    shelves:
+      - {id: shelf_1, center: [0.8, 0.0, 0.75], yaw: -1.572, length: 0.7, width: 0.5, height: 1.5, thickness: 0.02, parts: 4}
+    carried:
+      id: cup
+      link: panda_hand_tcp
+      shape: cylinder
+      radius: 0.03
+      length: 0.1
+      position: [0.0, 0.0, 0.0]
+      quat_wxyz: [0.7071067811865476, 0.0, 0.7071067811865476, 0.0]  # local z along the tool x axis
+      touch_links: [panda_hand]
+      ignore_links: [panda_hand_sc]
+    fixed_joints:
+      panda_finger_joint1: 0.0325
+      panda_finger_joint2: 0.0325
+
+  # S2: two arms carry a rigidly grasped tray (n = 14, m = 6).
+  panda_dual:
+    groups: [panda_arm_2, panda_arm_1]
+    tips: [panda_2_hand_tcp, panda_1_hand_tcp]
+    world_box_links: [base]
+    tables:
+      - {id: table_1, center: [0.5, -0.6, 0.3], length: 0.5, width: 0.9, height: 0.6, thickness: 0.05}
+      - {id: table_2, center: [0.5, 0.6, 0.3], length: 0.5, width: 0.9, height: 0.6, thickness: 0.05}
+    carried:
+      id: tray
+      link: panda_2_hand_tcp
+      shape: box
+      size: [0.225, 0.3, 0.01]
+      position: [0.0, 0.1174990364441225, 0.14324149524059965]
+      quat_wxyz: [0.32914517342087574, -0.9442793309258345, 0.0, 0.0]
+      ignore_links: [panda_1_hand_sc, panda_2_hand_sc]
+    fixed_joints:
+      panda_1_finger_joint1: 0.0325
+      panda_1_finger_joint2: 0.0325
+      panda_2_finger_joint1: 0.0325
+      panda_2_finger_joint2: 0.0325
+
+  # S3: S2 with the tray kept level (n = 14, m = 8).
+  panda_dual_orientation:
+    groups: [panda_arm_2, panda_arm_1]
+    tips: [panda_2_hand_tcp, panda_1_hand_tcp]
+    world_box_links: [base]
+    tables:
+      - {id: table_1, center: [0.5, -0.6, 0.3], length: 0.5, width: 0.9, height: 0.6, thickness: 0.05}
+      - {id: table_2, center: [0.5, 0.6, 0.3], length: 0.5, width: 0.9, height: 0.6, thickness: 0.05}
+    carried:
+      id: tray
+      link: panda_2_hand_tcp
+      shape: box
+      size: [0.225, 0.3, 0.01]
+      position: [0.0, 0.1174990364441225, 0.14324149524059965]
+      quat_wxyz: [0.32914517342087574, -0.9442793309258345, 0.0, 0.0]
+      ignore_links: [panda_1_hand_sc, panda_2_hand_sc]
+    fixed_joints:
+      panda_1_finger_joint1: 0.0325
+      panda_1_finger_joint2: 0.0325
+      panda_2_finger_joint1: 0.0325
+      panda_2_finger_joint2: 0.0325
+    keep_direction: {link: panda_2_hand_tcp, in_carried: true, local: [0, 0, 1], world: [0, 0, 1]}
+
+  # S4: three arms carry a chair among boxes (n = 21, m = 12).
+  panda_triple:
+    groups: [panda_left, panda_right, panda_top]
+    tips: [panda_left_hand_tcp, panda_right_hand_tcp, panda_top_hand_tcp]
+    world_box_links: [base]
+    boxes:
+      - {id: sub_table, center: [0.69, -0.04, 1.0826], size: [0.37, 0.22, 0.165]}
+      - {id: sub_table2, center: [0.465, -0.505, 1.0826], size: [0.22, 0.17, 0.165]}
+      - {id: sub_table3, center: [0.595, 0.355, 1.0826], size: [0.17, 0.22, 0.165]}
+      - {id: sub_table4, center: [0.42, 0.1, 1.0826], size: [0.22, 0.22, 0.165]}
+    carried:
+      id: chair
+      link: panda_left_hand
+      shape: mesh
+      mesh: package://rmrrt/robots/objects/ikea_stefan_chair.stl
+      position: [-0.0662922289291252, -0.41077047967330915, 0.47488043218092413]
+      quat_wxyz: [0.9984774309826756, 0.0009134257840388643, 0.05232807062204693, 0.017428668811693117]
+      # capsules covering the mesh, in the mesh frame: [ax, ay, az, bx, by, bz, radius]
+      capsules:
+        - [0.0005, 0.4107, -0.0289, 0.0003, 0.4105, -0.3428, 0.0301]
+        - [-0.0002, 0.0167, -0.3701, 0.0003, 0.4193, -0.3694, 0.0336]
+        - [0.4087, 0.0109, -0.3348, 0.3731, 0.3475, -0.3342, 0.0258]
+        - [0.3759, 0.1298, -0.3390, 0.0231, 0.1303, -0.3699, 0.0217]
+        - [0.3674, 0.4177, -0.3351, 0.4544, 0.8754, -0.3347, 0.0346]
+        - [0.3753, 0.3897, -0.3333, 0.0388, 0.4149, -0.3680, 0.0369]
+        - [0.3748, 0.1298, -0.0319, 0.0224, 0.1313, 0.0005, 0.0214]
+        - [0.4100, 0.0109, -0.0352, 0.3728, 0.3480, -0.0344, 0.0261]
+        - [-0.0012, 0.0164, -0.0001, 0.0011, 0.4196, -0.0003, 0.0330]
+        - [0.3765, 0.3894, -0.0366, 0.0414, 0.4139, -0.0021, 0.0357]
+        - [0.4540, 0.8745, -0.0344, 0.3681, 0.4192, -0.0350, 0.0366]
+        - [0.3667, 0.3976, -0.0635, 0.3663, 0.3968, -0.3063, 0.0301]
+        - [0.4493, 0.8557, -0.0707, 0.4539, 0.8543, -0.2430, 0.0423]
+        - [0.4429, 0.8075, -0.1626, 0.4037, 0.6137, -0.1233, 0.0457]
+        - [0.4512, 0.8639, -0.2929, 0.4063, 0.6187, -0.1944, 0.0528]
+        - [0.3962, 0.5669, -0.0754, 0.3970, 0.5718, -0.2943, 0.0516]
+    fixed_joints:
+      panda_left_finger_joint1: 0.0325
+      panda_left_finger_joint2: 0.0325
+      panda_right_finger_left_joint: 0.0325
+      panda_right_finger_right_joint: 0.0325
+      panda_top_finger_left_joint: 0.0325
+      panda_top_finger_right_joint: 0.0325
+
+  # S5: an H1-2 humanoid carries a box with both hands through a window between two slabs (n = 14, m = 6).
+  h1_2_dual:
+    groups: [left_arm, right_arm]
+    tips: [L_hand_base_link, R_hand_base_link]
+    boxes:
+      - {id: table_1, center: [0.5, -0.5, -0.35], size: [0.6, 1.0, 0.55]}
+      - {id: table_2, center: [0.5, 0.5, -0.35], size: [0.6, 1.0, 0.55]}
+      - {id: upper_slab, center: [0.55, 0.0, 0.8725], size: [0.5, 0.05, 0.215]}
+      - {id: lower_slab, center: [0.55, 0.0, 0.1575], size: [0.5, 0.05, 0.215]}
+      - {id: lip, center: [0.55, 0.0, 0.215], size: [0.5, 0.10, 0.02]}
+    carried:
+      id: box
+      link: L_hand_base_link
+      shape: box
+      size: [0.2, 0.2, 0.2]
+      position: [-0.1450019186, -0.2139969855, 0.0048911088]
+      quat_wxyz: [-0.7070918621236794, -5.6445176851253e-06, -0.0003159017323978911, 0.7071216293486592]
+      touch_links: [L_hand_base_link, R_hand_base_link, left_wrist_yaw_link, right_wrist_yaw_link]
+    # capsules covering the arm and hand meshes, in the link frames: [ax, ay, az, bx, by, bz, radius]
+    link_capsules:
+      left_shoulder_pitch_link:
+        - [0.0111, 0.0077, 0.0052, -0.0293, 0.0514, -0.0411, 0.0468]
+        - [0.0066, 0.0836, 0.0264, -0.0336, 0.0185, 0.0174, 0.0476]
+        - [0.0129, 0.0754, -0.0403, -0.0259, 0.0970, -0.0029, 0.0471]
+      left_shoulder_roll_link:
+        - [-0.0523, 0.0221, -0.1068, -0.0490, -0.0244, -0.1075, 0.0485]
+        - [-0.0044, 0.0036, -0.1241, 0.0033, -0.0009, 0.0201, 0.0496]
+      left_shoulder_yaw_link:
+        - [0.0306, -0.0023, -0.2108, 0.0331, -0.0294, -0.1253, 0.0452]
+        - [-0.0141, -0.0285, -0.2069, -0.0346, -0.0073, -0.0182, 0.0464]
+        - [-0.0028, 0.0204, -0.0134, -0.0032, -0.0205, -0.0073, 0.0441]
+        - [-0.0196, 0.0146, -0.1978, 0.0343, -0.0044, -0.0205, 0.0461]
+      left_elbow_pitch_link:
+        - [0.1055, -0.0373, -0.0143, -0.0161, 0.0041, 0.0016, 0.0462]
+      left_elbow_roll_link:
+        - [0.0761, 0.0304, 0.0094, 0.0099, 0.0150, -0.0125, 0.0417]
+        - [0.0762, -0.0304, -0.0074, 0.0107, -0.0135, 0.0130, 0.0430]
+      left_wrist_pitch_link:
+        - [0.0173, 0.0006, 0.0133, 0.0213, 0.0002, -0.0118, 0.0418]
+      right_shoulder_pitch_link:
+        - [-0.0280, -0.0801, -0.0346, 0.0094, -0.0978, 0.0072, 0.0466]
+        - [-0.0261, -0.0785, 0.0271, 0.0098, -0.0107, 0.0141, 0.0454]
+        - [-0.0284, -0.0103, -0.0079, 0.0154, -0.0607, -0.0445, 0.0459]
+      right_shoulder_roll_link:
+        - [-0.0483, 0.0248, -0.1072, -0.0530, -0.0214, -0.1075, 0.0489]
+        - [-0.0045, -0.0033, -0.1240, 0.0031, 0.0012, 0.0202, 0.0489]
+      right_shoulder_yaw_link:
+        - [0.0351, 0.0269, -0.1304, 0.0302, 0.0022, -0.2119, 0.0443]
+        - [-0.0145, 0.0287, -0.2071, -0.0355, 0.0029, -0.0182, 0.0458]
+        - [-0.0031, -0.0187, -0.0119, -0.0051, 0.0190, -0.0104, 0.0449]
+        - [0.0345, 0.0056, -0.0201, -0.0196, -0.0144, -0.1985, 0.0454]
+      right_elbow_pitch_link:
+        - [0.1054, 0.0374, -0.0139, -0.0158, -0.0043, 0.0009, 0.0466]
+      right_elbow_roll_link:
+        - [0.0097, -0.0117, -0.0162, 0.0745, -0.0320, 0.0101, 0.0417]
+        - [0.0751, 0.0318, -0.0074, 0.0107, 0.0119, 0.0168, 0.0430]
+      right_wrist_pitch_link:
+        - [0.0199, -0.0005, -0.0095, 0.0189, -0.0005, 0.0109, 0.0417]
+      L_hand_base_link:
+        - [-0.0008, -0.0199, 0.0000, 0.0018, -0.1205, -0.0024, 0.0416]
+      R_hand_base_link:
+        - [0.0016, -0.1207, 0.0018, -0.0009, -0.0199, 0.0006, 0.0412]
+      L_thumb_proximal_base:
+        - [-0.0031, -0.0030, -0.0094, 0.0093, 0.0020, -0.0052, 0.0100]
+      L_thumb_proximal:
+        - [0.0471, -0.0274, -0.0080, 0.0193, 0.0060, -0.0078, 0.0151]
+        - [0.0035, 0.0008, -0.0080, 0.0294, -0.0365, -0.0080, 0.0146]
+      L_thumb_intermediate:
+        - [-0.0027, 0.0116, -0.0070, 0.0184, -0.0075, -0.0074, 0.0137]
+      L_thumb_distal:
+        - [0.0165, -0.0118, -0.0059, 0.0006, 0.0031, -0.0061, 0.0085]
+      L_index_proximal:
+        - [0.0014, 0.0035, -0.0060, 0.0008, -0.0297, -0.0060, 0.0119]
+      L_index_intermediate:
+        - [-0.0001, -0.0414, -0.0050, 0.0043, 0.0041, -0.0050, 0.0077]
+      L_middle_proximal:
+        - [0.0008, -0.0297, -0.0061, 0.0014, 0.0036, -0.0059, 0.0119]
+      L_middle_intermediate:
+        - [-0.0009, -0.0448, -0.0050, 0.0043, 0.0040, -0.0050, 0.0077]
+      L_ring_proximal:
+        - [0.0008, -0.0297, -0.0059, 0.0014, 0.0035, -0.0060, 0.0120]
+      L_ring_intermediate:
+        - [0.0044, 0.0040, -0.0050, -0.0001, -0.0414, -0.0051, 0.0078]
+      L_pinky_proximal:
+        - [0.0009, -0.0297, -0.0060, 0.0014, 0.0036, -0.0060, 0.0119]
+      L_pinky_intermediate:
+        - [0.0009, -0.0338, -0.0049, 0.0042, 0.0040, -0.0050, 0.0075]
+      R_thumb_proximal_base:
+        - [-0.0091, 0.0030, -0.0055, 0.0028, -0.0034, -0.0097, 0.0100]
+      R_thumb_proximal:
+        - [0.0199, -0.0060, -0.0078, 0.0471, 0.0277, -0.0080, 0.0150]
+        - [0.0038, -0.0009, -0.0080, 0.0293, 0.0365, -0.0084, 0.0149]
+      R_thumb_intermediate:
+        - [-0.0029, -0.0115, -0.0072, 0.0186, 0.0073, -0.0072, 0.0136]
+      R_thumb_distal:
+        - [0.0005, -0.0030, -0.0060, 0.0166, 0.0118, -0.0061, 0.0084]
+      R_index_proximal:
+        - [0.0007, 0.0297, -0.0060, 0.0014, -0.0036, -0.0061, 0.0119]
+      R_index_intermediate:
+        - [-0.0005, 0.0415, -0.0049, 0.0043, -0.0040, -0.0050, 0.0077]
+      R_middle_proximal:
+        - [0.0010, 0.0297, -0.0059, 0.0015, -0.0035, -0.0060, 0.0120]
+      R_middle_intermediate:
+        - [0.0043, -0.0040, -0.0050, -0.0009, 0.0448, -0.0050, 0.0077]
+      R_ring_proximal:
+        - [0.0010, 0.0297, -0.0061, 0.0013, -0.0036, -0.0060, 0.0119]
+      R_ring_intermediate:
+        - [0.0044, -0.0040, -0.0050, -0.0001, 0.0414, -0.0050, 0.0078]
+      R_pinky_proximal:
+        - [0.0009, 0.0297, -0.0060, 0.0014, -0.0036, -0.0060, 0.0119]
+      R_pinky_intermediate:
+        - [0.0042, -0.0040, -0.0050, 0.0011, 0.0338, -0.0050, 0.0076]

@@ -1,0 +1,19 @@
+# Planner and metric parameters, the same for every scenario.
+
+planner:
+  step_size: 0.2               # eta: joint-space length of every step [rad]
+  connection_tolerance: 0.2    # the trees connect when a node comes this close to the other tree [rad]
+  projection_tolerance: 0.002  # tau: a configuration is on the manifold when ||g(q)|| < tau
+  edge_resolution: 0.01        # spacing of the validity checks along an edge [rad]
+  timeout: 30.0                # seconds per query
+  seed: 1                      # query k uses seed * 100000 + k
+
+metric:
+  lambda: 1.0                  # G = lambda I + sum_i w(h_i) grad h_i grad h_i^T
+  beta: 0.5                    # weight of the barrier push in the centered steering
+  barrier_width:               # delta: a margin smaller than this enters the metric
+    obstacle: 0.15             # [m]
+    self_collision: 0.05       # [m]
+    joint_limit: 0.2           # [rad]
+  epsilon: 0.001               # w(h) = delta^2 min(1 / (h^2 + epsilon^2), psi_max)
+  psi_max: 10000.0

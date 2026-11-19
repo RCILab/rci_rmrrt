@@ -1,0 +1,33 @@
+<launch>
+  <!-- The robot of a scenario on the parameter server, for `rosrun rmrrt benchmark` and `rosrun rmrrt view`.
+         roslaunch rmrrt robot.launch scenario:=panda_dual
+       panda_orientation (S1) | panda_dual (S2) | panda_dual_orientation (S3) | panda_triple (S4) | h1_2_dual (S5) -->
+  <arg name="scenario" default="panda_orientation"/>
+
+  <include if="$(eval scenario == 'panda_orientation')" file="$(find panda_moveit_config)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="true"/>
+  </include>
+
+  <!-- Two Pandas on a stand: the URDF from robots/dual_panda, the rest from dual_panda_moveit_config -->
+  <group if="$(eval scenario in ['panda_dual', 'panda_dual_orientation'])">
+    <param name="robot_description" command="xacro '$(find rmrrt)/robots/dual_panda/dual_panda.urdf.xacro'"/>
+    <include file="$(find dual_panda_moveit_config)/launch/planning_context.launch"/>
+  </group>
+
+  <include if="$(eval scenario == 'panda_triple')" file="$(find assembly_moveit_config)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="true"/>
+  </include>
+
+  <!-- Unitree H1-2 with convex-hull collision meshes -->
+  <group if="$(eval scenario == 'h1_2_dual')">
+    <param name="robot_description" textfile="$(find rmrrt)/robots/h1_2/h1_2.urdf"/>
+    <param name="robot_description_semantic" textfile="$(find rmrrt)/robots/h1_2/h1_2.srdf"/>
+    <group ns="robot_description_planning">
+      <rosparam command="load" file="$(find rmrrt)/robots/h1_2/joint_limits.yaml"/>
+      <rosparam command="load" file="$(find rmrrt)/robots/h1_2/cartesian_limits.yaml"/>
+    </group>
+    <group ns="robot_description_kinematics">
+      <rosparam command="load" file="$(find rmrrt)/robots/h1_2/kinematics.yaml"/>
+    </group>
+  </group>
+</launch>

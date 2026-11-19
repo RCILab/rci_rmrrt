@@ -1,0 +1,23 @@
+# Robot packages of the Panda scenarios (S1-S4), pinned to the versions the scenes were made with:
+#   vcs import src < src/rci_rmrrt/dependencies.repos
+repositories:
+  panda_moveit_config:
+    type: git
+    url: https://github.com/moveit/panda_moveit_config.git
+    version: a86da56ab1c756a851d8ee2a06dd04266d1653d6
+  dual_panda_moveit_config:
+    type: git
+    url: https://github.com/psh117/dual_panda_moveit_config.git
+    version: a93181a20f9ba4d23416c20ffeaeb988cb1fec09
+  assembly_moveit_config:
+    type: git
+    url: https://github.com/psh117/assembly_moveit_config.git
+    version: 36b2e2ad4ca8c85803f478effc6e9d2090451128
+  assembly_env_description:
+    type: git
+    url: https://github.com/psh117/assembly_env_description.git
+    version: 3c977a99fd116079d274e488e26fa79742ad6338
+  calibrated_franka_description:
+    type: git
+    url: https://github.com/psh117/calibrated_franka_description.git
+    version: b828b60928a12a3eb622db167daa9fb396563ee3

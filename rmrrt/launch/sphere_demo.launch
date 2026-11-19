@@ -1,0 +1,15 @@
+<launch>
+  <!-- One sphere instance solved by each method, side by side in RViz. No robot needed.
+         roslaunch rmrrt sphere_demo.launch
+         roslaunch rmrrt sphere_demo.launch layout:=gate h:=0.25 instance:=3 -->
+  <arg name="layout" default="double_gate"/>  <!-- open | clutter | gate | double_gate -->
+  <arg name="h" default="0.15"/>              <!-- half-width of the openings -->
+  <arg name="instance" default="5"/>          <!-- as in sphere_benchmark -->
+
+  <node pkg="rmrrt" type="sphere_demo" name="sphere_demo" output="screen"
+        args="--layout $(arg layout) --h $(arg h) --instance $(arg instance)"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="sphere_demo_frame" args="0 0 0 0 0 0 world sphere_demo"/>
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find rmrrt)/launch/rviz/sphere_demo.rviz">
+    <env name="DISABLE_ROS1_EOL_WARNINGS" value="1"/>
+  </node>
+</launch>
